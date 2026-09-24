@@ -4,10 +4,10 @@ CREATE TABLE IF NOT EXISTS products (
     price DECIMAL(10, 2) NOT NULL,
     description TEXT,
     stock INT NOT NULL DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
---sample
+-- Sample products
 INSERT INTO products (name, price, description, stock) VALUES
 ('Product 1', 19.99, 'Description for Product 1', 100),
 ('Product 2', 29.99, 'Description for Product 2', 50),

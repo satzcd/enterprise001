@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const productRoutes = require('./routes/productRoutes')
+const productRoutes = require('./routes/productRoutes');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// endpoint for healthcheck
+// Endpoint untuk health check
 app.get('/health', (req, res) => {
     res.json({
         status: "ok",
@@ -15,11 +15,14 @@ app.get('/health', (req, res) => {
     });
 });
 
-app.use ("/products", productRoutes);
+// Endpoint product
+app.use('/products', productRoutes);
 
-//unknown path
+// Unknown path
 app.use((req, res) => {
     res.status(404).json({
         message: "Endpoint tidak dikenal"
     });
 });
+
+module.exports = app;
