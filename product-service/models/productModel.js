@@ -14,15 +14,15 @@ async function getProductById(id) {
 
 //Buat Product Baru
 async function createProduct(product) {
-    const { name, description, price, stock } = product;
-    const [result] = await pool.query('INSERT INTO products (name, description, price, stock) VALUES (?, ?, ?, ?)', [name, description, price, stock]);
+    const { name, description, price, stock, image } = product;
+    const [result] = await pool.query('INSERT INTO products (name, description, price, stock, image) VALUES (?, ?, ?, ?, ?)', [name, description, price, stock, image]);
     return getProductById(result.insertId);
 }
 
 //Update Product Berdasarkan ID
 async function updateProduct(id, product) {
-    const { name, description, price, stock } = product;
-    await pool.query('UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?', [name, description, price, stock, id]);
+    const { name, description, price, stock, image } = product;
+    await pool.query('UPDATE products SET name = ?, description = ?, price = ?, stock = ?, image = ? WHERE id = ?', [name, description, price, stock, image, id]);
     return getProductById(id);
 }
 

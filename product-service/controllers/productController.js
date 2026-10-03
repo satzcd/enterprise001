@@ -1,4 +1,5 @@
 const productModel = require('../models/productModel');
+const validateImage = require('./imageValidation');
 
 // Controller untuk mengambil semua produk
 async function getAllProducts(req, res) {
@@ -45,13 +46,21 @@ async function getProductById(req, res) {
 // Controller untuk membuat produk baru
 async function createProduct(req, res) {
     try {
-        const { name, description, price, stock } = req.body;
+        const { name, description, price, stock, image } = req.body || {};
+        const imageError = validateImage(image);
+
+        if (imageError) {
+            return res.status(400).json({
+                message: imageError
+            });
+        }
 
         const product = await productModel.createProduct({
             name,
             description,
             price,
-            stock
+            stock,
+            image
         });
 
         res.status(201).json({
@@ -70,7 +79,14 @@ async function createProduct(req, res) {
 async function updateProduct(req, res) {
     try {
         const { id } = req.params;
-        const { name, description, price, stock } = req.body;
+        const { name, description, price, stock, image } = req.body || {};
+        const imageError = validateImage(image);
+
+        if (imageError) {
+            return res.status(400).json({
+                message: imageError
+            });
+        }
 
         // Cek apakah produk tersedia
         const existingProduct = await productModel.getProductById(id);
@@ -85,7 +101,8 @@ async function updateProduct(req, res) {
             name,
             description,
             price,
-            stock
+            stock,
+            image
         });
 
         res.json({
