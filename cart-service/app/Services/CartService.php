@@ -7,6 +7,12 @@ use App\Models\CartItem;
 
 class CartService
 {
+
+    public function __construct(private ProductService $productService)
+    {
+        
+    }
+
     public function getCart($userId)
     {
         return CartItem::forUser($userId)

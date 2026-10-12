@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ProductNotFoundException;
 use App\Exceptions\CartItemNotFoundException;
 use App\Http\Requests\AddCartItemRequest;
 use App\Http\Requests\UpdateCartItemRequest;
@@ -24,14 +25,23 @@ class CartController extends Controller
 
     public function store(AddCartItemRequest $request): JsonResponse
     {
-        $item = $this->cartService->addItem(
-            $request->user_id,
-            $request->product_id,
-            $request->quantity
-        );
+        try {
+            $item = $this->cartService->addItem(
+                $request->user_id,
+                $request->product_id,
+                $request->quantity
+            );
 
-        return response()->json($item, 201);
+            return response()->json($item, 201);
+        } catch (ProductNotFoundException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 404);
+        }catch (throwable $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
     }
+
 
     public function update(
         UpdateCartItemRequest $request,
@@ -74,4 +84,6 @@ class CartController extends Controller
             'message' => 'Cart cleared',
         ]);
     }
+
+
 }
