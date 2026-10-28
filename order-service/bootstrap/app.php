@@ -16,8 +16,28 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
+
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (
+            \App\Exceptions\ServiceUnavailableException $exception,
+            Request $request
+        ) {
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return null;
+            }
+
+            $response = [
+                'message' => 'Service dependency tidak tersedia.',
+            ];
+
+            if (config('app.debug')) {
+                $response['error'] = $exception->getMessage();
+            }
+
+            return response()->json($response, 503);
+        });
     })->create();

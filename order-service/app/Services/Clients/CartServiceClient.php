@@ -2,9 +2,9 @@
 
 namespace App\Services\Clients;
 
+use App\Exceptions\ServiceUnavailableException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
 
 class CartServiceClient
 {
@@ -18,21 +18,21 @@ class CartServiceClient
                 ->timeout(5)
                 ->get("/carts/{$userId}");
         } catch (ConnectionException $exception) {
-            throw new RuntimeException(
+            throw new ServiceUnavailableException(
                 'Tidak dapat terhubung ke Cart Service.',
                 0,
                 $exception
             );
         }
 
-        if ($response->status() >= 500) {
-            throw new RuntimeException(
+        if ($response->serverError()) {
+            throw new ServiceUnavailableException(
                 'Cart Service mengalami kesalahan server.'
             );
         }
 
         if (! $response->successful()) {
-            throw new RuntimeException(
+            throw new ServiceUnavailableException(
                 'Cart Service mengembalikan respons yang tidak valid.'
             );
         }
@@ -40,7 +40,7 @@ class CartServiceClient
         $cart = $response->json();
 
         if (! is_array($cart) || ! array_is_list($cart)) {
-            throw new RuntimeException(
+            throw new ServiceUnavailableException(
                 'Format respons Cart Service tidak valid.'
             );
         }
@@ -58,7 +58,7 @@ class CartServiceClient
                 ->timeout(5)
                 ->delete("/carts/{$userId}");
         } catch (ConnectionException $exception) {
-            throw new RuntimeException(
+            throw new ServiceUnavailableException(
                 'Tidak dapat mengosongkan cart melalui Cart Service.',
                 0,
                 $exception
@@ -66,7 +66,7 @@ class CartServiceClient
         }
 
         if (! $response->successful()) {
-            throw new RuntimeException(
+            throw new ServiceUnavailableException(
                 'Cart Service gagal mengosongkan cart.'
             );
         }
