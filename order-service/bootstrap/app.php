@@ -22,6 +22,27 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
+
+        $exceptions->render(function (
+            \App\Exceptions\CheckoutConflictException $exception,
+            Request $request
+        ) {
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return null;
+            }
+
+            $response = [
+                'message' => $exception->getMessage(),
+            ];
+
+            if (config('app.debug')) {
+                $response['error'] = $exception->getMessage();
+            }
+
+            return response()->json($response, 409);
+        });
+
+
         $exceptions->render(function (
             \App\Exceptions\ServiceUnavailableException $exception,
             Request $request
