@@ -37,15 +37,15 @@ class CartServiceClient
             );
         }
 
-        $cart = $response->json();
+        $items = $response->json();
 
-        if (! is_array($cart) || ! array_is_list($cart)) {
+        if (! is_array($items) || ! array_is_list($items)) {
             throw new ServiceUnavailableException(
                 'Format respons Cart Service tidak valid.'
             );
         }
 
-        return $cart;
+        return $items;
     }
 
     public function clearCart(int $userId): void
