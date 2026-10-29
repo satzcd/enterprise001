@@ -23,4 +23,11 @@ class ListUserOrdersRequest extends FormRequest
             ],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'status.in' => 'Status harus PENDING atau PAID',
+        ];
+    }
 }
