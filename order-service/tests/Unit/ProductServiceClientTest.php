@@ -67,4 +67,22 @@ class ProductServiceClientTest extends TestCase
 
         app(ProductServiceClient::class)->getProduct(1);
     }
+
+    public function test_it_throws_when_product_data_is_invalid(): void
+    {
+        config([
+            'services.product.url' => 'http://product-service:3000',
+        ]);
+
+        Http::fake([
+            'product-service:3000/products/1' => Http::response([
+                'message' => 'Berhasil mengambil data produk',
+                'data' => null,
+                ], 200),
+        ]);
+
+        $this->expectException(ServiceUnavailableException::class);
+
+        app(ProductServiceClient::class)->getProduct(1);
+    }
 }

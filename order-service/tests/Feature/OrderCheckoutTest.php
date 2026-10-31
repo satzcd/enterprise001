@@ -443,4 +443,29 @@ public function test_payment_returns_404_when_order_does_not_exist(): void
     $this->patchJson('/orders/999999/pay')
         ->assertNotFound();
 }
+
+public function test_checkout_rejects_invalid_cart_item(): void
+{
+    Http::fake([
+        '*/carts/10' => Http::response([
+            [
+                'id' => 1,
+                'user_id' => 10,
+                'product_id' => 5,
+                'quantity' => 0,
+            ],
+        ]),
+    ]);
+
+    $this->postJson('/orders', ['user_id' => 10])
+        ->assertStatus(503)
+        ->assertJsonPath(
+            'message',
+            'Service dependency tidak tersedia.'
+        );
+
+    $this->assertDatabaseCount('orders', 0);
+    $this->assertDatabaseCount('order_items', 0);
+}
+
 }

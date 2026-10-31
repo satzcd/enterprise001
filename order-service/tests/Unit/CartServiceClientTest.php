@@ -87,4 +87,20 @@ class CartServiceClientTest extends TestCase
 
         app(CartServiceClient::class)->clearCart(7);
     }
+
+    public function test_it_returns_an_empty_list_when_cart_is_empty(): void
+    {
+        config([
+            'services.cart.url' => 'http://cart-service:3001',
+        ]);
+
+        Http::fake([
+            'cart-service:3001/carts/7' => Http::response([], 200),
+        ]);
+
+        $items = app(CartServiceClient::class)->getCart(7);
+
+        $this->assertSame([], $items);
+    }
+
 }
