@@ -1,0 +1,604 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-10-31T10:06:44.727711+00:00",
+  "__export_source": "chatgpt",
+  "resources": [
+    {
+      "_id": "wrk_order_service",
+      "_type": "workspace",
+      "name": "Order Service API",
+      "description": "Insomnia collection untuk menguji Order Service. Jalankan Docker Compose dari root repository; Order Service tersedia di http://localhost:3003."
+    },
+    {
+      "_id": "env_order_local",
+      "_type": "environment",
+      "parentId": "wrk_order_service",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:3003",
+        "user_id": "10",
+        "order_id": "1",
+        "missing_order_id": "999999"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "user_id",
+          "order_id",
+          "missing_order_id"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "fld_order_endpoints",
+      "_type": "request_group",
+      "parentId": "wrk_order_service",
+      "name": "Order endpoints",
+      "description": "Semua request menggunakan Accept: application/json. Beberapa skenario checkout memerlukan kondisi Cart/Product Service tertentu."
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Health check",
+      "description": "Harapan: HTTP 200, status ok, service order-service.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 4,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_create_order",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Create order - checkout berhasil",
+      "description": "Harapan: HTTP 201. Membutuhkan cart berisi produk valid dan stok mencukupi. Cart akan dikosongkan setelah order dibuat.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/orders",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"user_id\": \"{{ _.user_id }}\"\n}"
+      },
+      "authentication": {},
+      "metaSortKey": 5,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_create_validation",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Create order - user_id tidak dikirim",
+      "description": "Harapan: HTTP 422 dengan validation error untuk user_id.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/orders",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "authentication": {},
+      "metaSortKey": 6,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_create_empty_cart",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Create order - cart kosong",
+      "description": "Harapan: HTTP 409. Siapkan cart kosong untuk user_id pada environment.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/orders",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"user_id\": \"{{ _.user_id }}\"\n}"
+      },
+      "authentication": {},
+      "metaSortKey": 7,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_create_missing_product",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Create order - produk tidak ditemukan",
+      "description": "Harapan: HTTP 409. Siapkan cart dengan product_id yang tidak ditemukan oleh Product Service.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/orders",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"user_id\": \"{{ _.user_id }}\"\n}"
+      },
+      "authentication": {},
+      "metaSortKey": 8,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_create_insufficient_stock",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Create order - stok tidak cukup",
+      "description": "Harapan: HTTP 409. Siapkan cart dengan quantity lebih besar daripada stock produk.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/orders",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"user_id\": \"{{ _.user_id }}\"\n}"
+      },
+      "authentication": {},
+      "metaSortKey": 9,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_create_cart_unavailable",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Create order - Cart Service gagal",
+      "description": "Harapan: HTTP 503 jika Cart Service mengembalikan kegagalan/server error. Untuk menjalankan skenario ini, buat Cart Service tidak tersedia sementara di lingkungan pengujian.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/orders",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 10,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_create_product_unavailable",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Create order - Product Service gagal",
+      "description": "Harapan: HTTP 503 jika Product Service mengembalikan kegagalan/server error. Cart harus berisi product_id yang valid secara format.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/orders",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 11,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_get_order",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Get order by ID",
+      "description": "Harapan: HTTP 200 jika order_id tersedia; response berisi data order dan items.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/{{ _.order_id }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 12,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_get_order_missing",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Get order - ID tidak ditemukan",
+      "description": "Harapan: HTTP 404 dengan pesan pesanan tidak ditemukan.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/{{ _.missing_order_id }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 13,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_list_orders",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "List orders by user",
+      "description": "Harapan: HTTP 200; daftar order terbaru lebih dahulu.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/user/{{ _.user_id }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 14,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_list_pending",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "List orders - filter PENDING",
+      "description": "Harapan: HTTP 200; hanya order berstatus PENDING.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/user/{{ _.user_id }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "status",
+          "value": "PENDING",
+          "disabled": false
+        }
+      ],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 15,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_list_paid",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "List orders - filter PAID",
+      "description": "Harapan: HTTP 200; hanya order berstatus PAID.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/user/{{ _.user_id }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "status",
+          "value": "PAID",
+          "disabled": false
+        }
+      ],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 16,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_list_invalid_status",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "List orders - status tidak valid",
+      "description": "Harapan: HTTP 422; pesan validasi menyebut status harus PENDING atau PAID.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/user/{{ _.user_id }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "status",
+          "value": "CANCELLED",
+          "disabled": false
+        }
+      ],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 17,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_pay_order",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Pay order - PENDING menjadi PAID",
+      "description": "Harapan: HTTP 200 dan status berubah menjadi PAID. Gunakan order berstatus PENDING.",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/orders/{{ _.order_id }}/pay",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 18,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_pay_duplicate",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Pay order - pembayaran duplikat",
+      "description": "Harapan: HTTP 409 jika order sudah PAID. Jalankan setelah request Pay order berhasil.",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/orders/{{ _.order_id }}/pay",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 19,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    },
+    {
+      "_id": "req_pay_missing",
+      "_type": "request",
+      "parentId": "fld_order_endpoints",
+      "name": "Pay order - ID tidak ditemukan",
+      "description": "Harapan: HTTP 404 jika order tidak ditemukan.",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/orders/{{ _.missing_order_id }}/pay",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "body": {},
+      "authentication": {},
+      "metaSortKey": 20,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingMaxRedirects": 5
+    }
+  ]
+}
