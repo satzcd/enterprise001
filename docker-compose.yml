@@ -172,6 +172,5 @@ volumes:
   order-db-data:
   product-db-data:
   cart-db-data:
-    external: true
     name: cart-service_cart-db-data
   review-db-data:

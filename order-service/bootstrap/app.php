@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,6 +23,20 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
+        $exceptions->render(function (
+            ValidationException $exception,
+            Request $request
+        ) {
+            if (! $request->expectsJson()) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => 'Data tidak valid.',
+                'data' => null,
+                'errors' => $exception->errors(),
+            ], 422);
+        });
 
         $exceptions->render(function (
             \App\Exceptions\CheckoutConflictException $exception,
@@ -60,5 +75,5 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return response()->json($response, 503);
-        });
+});
     })->create();
