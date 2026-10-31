@@ -6,12 +6,12 @@ Proyek UTS implementasi arsitektur microservices untuk aplikasi e-commerce. Repo
 
 Setiap service memiliki tanggung jawab dan database masing-masing.
 
-| Service | Teknologi | Port |
-|---|---|---:|
-| Product Service | Node.js, Express, MySQL | 3000 |
-| Cart Service | Laravel, PostgreSQL | 3001 |
-| Review Service | Python, Flask, MongoDB | 3002 |
-| Order Service | Laravel, MySQL | 3003 |
+| Service | Teknologi | Database | Port |
+|---|---|---|---:|
+| Product Service | Node.js, Express | MySQL | 3000 |
+| Cart Service | Laravel | PostgreSQL | 3001 |
+| Review Service | Python, Flask | MongoDB | 3002 |
+| Order Service | Laravel | MySQL | 3003 |
 
 ### Alur komunikasi Order Service
 
@@ -27,63 +27,88 @@ Order Service tidak membaca database milik service lain secara langsung. Komunik
 
 ## Struktur Repository
 
-- `product-service/` — Product Service
-- `cart-service/` — Cart Service
-- `review-service/` — Review Service
-- `order-service/` — Order Service
-- `ecommerce-ui/` — direktori aplikasi UI
-- `docker-compose.yml` — konfigurasi layanan dan database
+- `product-service/` — Product Service.
+- `cart-service/` — Cart Service.
+- `review-service/` — Review Service.
+- `order-service/` — Order Service.
+- `ecommerce-ui/` — Direktori aplikasi UI.
+- `docker-compose.yml` — Konfigurasi layanan dan database.
 
 ## Prasyarat
 
-- Git
-- Docker Engine
-- Docker Compose plugin
+- Git.
+- Docker Engine.
+- Docker Compose plugin.
 
 Docker harus berjalan sebelum menjalankan perintah Compose.
 
 ## Menjalankan Seluruh Layanan
 
-Clone repository:
+### 1. Clone repository
 
 ```bash
 git clone https://github.com/satzcd/enterprise001.git
 cd enterprise001
 ```
 
-Pastikan port yang digunakan tidak sedang dipakai aplikasi lain: `3000`, `3001`, `3002`, `3003`, dan `5432`.
+### 2. Persiapan environment
 
-Build dan jalankan seluruh layanan:
+Cart Service Laravel membutuhkan `APP_KEY`. Buat key baru menggunakan Docker tanpa perlu memasang PHP secara lokal.
+
+```bash
+printf 'CART_APP_KEY=%s\n' \
+  "$(docker run --rm php:8.4-cli -r 'echo "base64:".base64_encode(random_bytes(32));')" > .env
+```
+
+Perintah tersebut membuat file `.env` di direktori utama repository.
+
+Pastikan file `.env` tidak di-commit ke GitHub karena berisi konfigurasi lokal dan application key.
+
+### 3. Jalankan seluruh layanan
 
 ```bash
 docker compose up --build -d
 ```
 
-Periksa status container:
+Perintah tersebut membangun image dan menjalankan seluruh service beserta database masing-masing.
+
+### 4. Periksa status container
 
 ```bash
 docker compose ps
 ```
 
-Lihat log seluruh layanan:
+Pastikan seluruh container berjalan dan database sudah berstatus `healthy`.
+
+### 5. Lihat log
+
+Seluruh service:
 
 ```bash
 docker compose logs -f
 ```
 
-Lihat log Order Service:
+Khusus Order Service:
 
 ```bash
 docker compose logs -f order-service
 ```
 
-Hentikan container tanpa menghapus data database:
+### 6. Menghentikan dan menjalankan kembali layanan
+
+Menghentikan container tanpa menghapus data:
 
 ```bash
-docker compose down
+docker compose stop
 ```
 
-**Penting:** Jangan gunakan `docker compose down -v` karena perintah tersebut dapat menghapus volume database.
+Menjalankan kembali:
+
+```bash
+docker compose start
+```
+
+Untuk mempertahankan data database, jangan gunakan `docker compose down -v`.
 
 ## Order Service API
 
@@ -92,6 +117,8 @@ Base URL:
 ```text
 http://localhost:3003
 ```
+
+### Daftar Endpoint
 
 | Method | Endpoint | Keterangan |
 |---|---|---|
@@ -104,75 +131,135 @@ http://localhost:3003
 Daftar pesanan mendukung filter status:
 
 ```text
-GET /orders/user/1?status=PENDING
-GET /orders/user/1?status=PAID
+GET /orders/user/10002?status=PENDING
+GET /orders/user/10002?status=PAID
 ```
 
-Status pesanan yang digunakan adalah `PENDING` dan `PAID`.
+Status pesanan yang digunakan:
+
+- `PENDING`
+- `PAID`
 
 ### Contoh Request
 
-Health check:
+Semua contoh menggunakan `curl` dan dapat dijalankan melalui Git Bash.
+
+**Health check**
 
 ```bash
 curl -i http://localhost:3003/health
 ```
 
-Membuat pesanan:
+**Membuat pesanan**
+
+Order dibuat berdasarkan cart pengguna. Cart harus sudah berisi produk.
 
 ```bash
 curl -i -X POST http://localhost:3003/orders \
+  -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"user_id":10002}'
 ```
 
-Mengambil detail pesanan:
+**Mengambil detail pesanan**
 
 ```bash
 curl -i http://localhost:3003/orders/1
 ```
 
-Mengambil daftar pesanan pengguna:
+**Mengambil daftar pesanan pengguna**
 
 ```bash
 curl -i http://localhost:3003/orders/user/10002
 ```
 
-Mengambil daftar pesanan berdasarkan status:
+**Mengambil daftar pesanan berdasarkan status**
 
 ```bash
 curl -i "http://localhost:3003/orders/user/10002?status=PENDING"
 ```
 
-Memproses pembayaran:
+**Memproses pembayaran**
 
 ```bash
-curl -i -X PATCH http://localhost:3003/orders/1/pay
+curl -i -X PATCH http://localhost:3003/orders/1/pay \
+  -H "Accept: application/json"
 ```
+
+Pembayaran hanya mengubah status pesanan dari `PENDING` menjadi `PAID`. Integrasi pembayaran nyata tidak termasuk dalam cakupan proyek.
+
+## Validasi dan Penanganan Error
+
+Order Service menggunakan HTTP status code berikut:
+
+| HTTP Status | Kondisi |
+|---|---|
+| 200 | Request berhasil |
+| 201 | Order berhasil dibuat |
+| 404 | Order atau resource tidak ditemukan |
+| 409 | Cart kosong, produk tidak tersedia, stok tidak cukup, atau konflik status |
+| 422 | Validasi request gagal |
+| 503 | Cart Service atau Product Service tidak tersedia |
+| 500 | Kesalahan internal yang tidak terduga |
 
 ### Contoh Skenario Error
 
-Request tanpa `user_id` untuk menguji validasi:
+**1. Request tanpa user_id**
 
 ```bash
 curl -i -X POST http://localhost:3003/orders \
+  -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
 
-Mengambil order yang tidak tersedia:
+Hasil yang diharapkan: `422 Unprocessable Content`.
+
+**2. Mengambil order yang tidak tersedia**
 
 ```bash
 curl -i http://localhost:3003/orders/999999
 ```
 
-Menguji filter status tidak valid:
+Hasil yang diharapkan: `404 Not Found`.
+
+**3. Filter status tidak valid**
 
 ```bash
-curl -i "http://localhost:3003/orders/user/10002?status=INVALID"
+curl -i "http://localhost:3003/orders/user/10002?status=INVALID" \
+  -H "Accept: application/json"
 ```
 
-Membayar order yang sudah berstatus `PAID` dapat digunakan untuk menguji konflik pembayaran berulang.
+Hasil yang diharapkan: `422 Unprocessable Content`.
+
+**4. Cart kosong**
+
+Checkout menggunakan user yang belum memiliki item cart.
+
+```bash
+curl -i -X POST http://localhost:3003/orders \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"user_id":10003}'
+```
+
+Hasil yang diharapkan: `409 Conflict`.
+
+**5. Stok tidak mencukupi**
+
+Masukkan jumlah produk ke cart melebihi stok yang tersedia, kemudian lakukan checkout.
+
+Hasil yang diharapkan: `409 Conflict`.
+
+**6. Dependency service tidak tersedia**
+
+Jika Cart Service atau Product Service tidak dapat diakses ketika checkout, Order Service mengembalikan:
+
+```text
+503 Service Unavailable
+```
+
+Detail kegagalan dicatat melalui logging Order Service.
 
 ## Integrasi Antarservice
 
@@ -183,15 +270,47 @@ Order Service menggunakan konfigurasi URL berikut:
 | `CART_SERVICE_URL` | `http://cart-service:3001` |
 | `PRODUCT_SERVICE_URL` | `http://product-service:3000` |
 
-Order Service menggunakan Cart Service untuk mengambil dan mengosongkan cart. Product Service digunakan untuk mengambil informasi produk, termasuk nama, harga, dan stok.
+Cart Service digunakan untuk:
+
+- Mengambil item cart berdasarkan user ID.
+- Mengosongkan cart setelah order berhasil disimpan.
+
+Product Service digunakan untuk:
+
+- Mengambil detail produk.
+- Memeriksa keberadaan produk.
+- Mengambil nama, harga, dan stok produk.
+
+Semua komunikasi dilakukan melalui HTTP API dan tidak mengakses database service lain secara langsung.
 
 ## Database dan Penyimpanan Data
 
 Order Service menggunakan MySQL dengan database `orderdb`.
 
-Data pesanan dan item pesanan disimpan pada database milik Order Service. Informasi nama dan harga produk disimpan sebagai snapshot agar detail pesanan tidak berubah ketika data produk di Product Service berubah.
+Tabel utama:
 
-Penyimpanan order dan item order menggunakan transaksi database.
+**orders**
+
+- `id`
+- `user_id`
+- `status`
+- `total_amount`
+- `created_at`
+- `updated_at`
+
+**order_items**
+
+- `id`
+- `order_id`
+- `product_id`
+- `product_name`
+- `unit_price`
+- `quantity`
+- `subtotal`
+
+Nama dan harga produk disimpan sebagai snapshot pada item order. Dengan demikian, informasi pesanan tetap mencerminkan data ketika order dibuat, meskipun informasi produk berubah kemudian.
+
+Penyimpanan order dan item order menggunakan transaksi database agar data pesanan konsisten.
 
 Setiap service memiliki volume database masing-masing pada konfigurasi Docker Compose. Pertahankan volume tersebut ketika melakukan restart atau pembaruan layanan.
 
@@ -203,48 +322,77 @@ Order Service menyediakan template konfigurasi di:
 order-service/.env.example
 ```
 
-Variabel penting:
+Cart Service menyediakan template konfigurasi di:
 
-- `APP_ENV` — lingkungan aplikasi.
-- `APP_DEBUG` — mengatur detail debug.
-- `APP_KEY` — application key Laravel.
-- `LOG_CHANNEL` — tujuan logging.
-- `DB_CONNECTION` — driver database.
-- `DB_HOST` — host database.
-- `DB_PORT` — port database.
-- `DB_DATABASE` — nama database.
-- `DB_USERNAME` — username database.
-- `DB_PASSWORD` — password database.
-- `CART_SERVICE_URL` — URL Cart Service.
-- `PRODUCT_SERVICE_URL` — URL Product Service.
+```text
+cart-service/.env.example
+```
 
-Untuk pengembangan lokal, sesuaikan konfigurasi dengan lingkungan masing-masing. Jangan commit file `.env`, password pribadi, API key, atau kredensial rahasia. Nonaktifkan debug pada deployment production.
+Product Service dan Review Service juga memiliki template konfigurasi masing-masing.
+
+Variabel penting untuk Order Service:
+
+| Variabel | Keterangan |
+|---|---|
+| `APP_ENV` | Lingkungan aplikasi |
+| `APP_DEBUG` | Mengatur detail debug |
+| `APP_KEY` | Application key Laravel |
+| `LOG_CHANNEL` | Tujuan logging |
+| `DB_CONNECTION` | Driver database |
+| `DB_HOST` | Host database |
+| `DB_PORT` | Port database |
+| `DB_DATABASE` | Nama database |
+| `DB_USERNAME` | Username database |
+| `DB_PASSWORD` | Password database |
+| `CART_SERVICE_URL` | URL Cart Service |
+| `PRODUCT_SERVICE_URL` | URL Product Service |
+
+Pada konfigurasi root Docker Compose, Cart Service menerima `CART_APP_KEY` dari file `.env` di direktori utama repository.
+
+Jangan commit file `.env`, password, API key, application key, atau kredensial rahasia. Nonaktifkan debug pada deployment production.
 
 ## Pengujian
 
-Pengujian Order Service dapat dijalankan dari root repository:
+Pengujian otomatis Order Service menggunakan PHPUnit dan Laravel testing.
+
+Untuk menjalankan pengujian secara lokal, masuk ke direktori Order Service:
 
 ```bash
-docker compose exec order-service php artisan test
+cd order-service
+composer install
+php artisan test
 ```
 
-Atau dari direktori `order-service` jika PHP dan Composer tersedia secara lokal:
+Pengujian juga dapat dijalankan dari root repository jika PHP dan Composer tersedia:
 
 ```bash
 php artisan test
 ```
 
-Pengujian manual API dapat dilakukan menggunakan curl, Postman, atau Insomnia.
+Image Docker menggunakan instalasi production tanpa development dependencies. Karena itu, PHPUnit tidak tersedia secara default di container Order Service.
+
+Pengujian manual API dapat dilakukan menggunakan `curl`, Postman, atau Insomnia.
 
 ## Keputusan Desain dan Batasan
 
 - Setiap microservice memiliki database sendiri.
-- Komunikasi antarservice dilakukan melalui HTTP API.
+- Komunikasi antarlayanan dilakukan melalui HTTP API.
 - Order Service menggunakan lapisan client untuk komunikasi dengan Cart Service dan Product Service.
+- Controller bertanggung jawab menangani HTTP request dan response.
+- Business logic checkout ditempatkan pada service layer.
 - Data nama dan harga produk disimpan sebagai snapshot item order.
 - Checkout menggunakan transaksi database agar penyimpanan order dan item order konsisten.
 - Kegagalan komunikasi dengan service dependency ditangani sebagai kegagalan dependency.
-- Proyek ini tidak mencakup autentikasi, pembayaran nyata, pengurangan stok, pembatalan pesanan, atau message broker.
+- Cart dikosongkan setelah order berhasil disimpan.
+- Jika pengosongan cart gagal setelah order tersimpan, order tetap dipertahankan dan kegagalan dicatat melalui log.
+
+Batasan proyek:
+
+- Tidak mencakup autentikasi.
+- Tidak mencakup pembayaran nyata.
+- Tidak melakukan pengurangan stok produk.
+- Tidak mencakup pembatalan pesanan.
+- Tidak menggunakan message broker.
 
 ## Video Demo UTS
 
@@ -254,14 +402,21 @@ Tautan video demo:
 
 Timestamp demo:
 
-- 00:00 — Pembukaan dan pengenalan proyek
-- [MM:SS] — Arsitektur microservices
-- [MM:SS] — Menjalankan project menggunakan Docker Compose
-- [MM:SS] — Health check dan endpoint Order Service
-- [MM:SS] — Checkout berhasil
-- [MM:SS] — Validasi request dan cart kosong
-- [MM:SS] — Stok tidak mencukupi
-- [MM:SS] — Product Service tidak tersedia dan log Order Service
-- [MM:SS] — Snapshot harga produk
-- [MM:SS] — Pembayaran dan penanganan error
-- [MM:SS] — Penutup
+- 00:00 — Pembukaan dan pengenalan proyek.
+- [MM:SS] — Arsitektur microservices.
+- [MM:SS] — Menjalankan project menggunakan Docker Compose dari fresh clone.
+- [MM:SS] — Health check dan endpoint Order Service.
+- [MM:SS] — Checkout berhasil.
+- [MM:SS] — Validasi request tanpa user_id.
+- [MM:SS] — Cart kosong.
+- [MM:SS] — Stok tidak mencukupi.
+- [MM:SS] — Product Service tidak tersedia dan log Order Service.
+- [MM:SS] — Snapshot harga produk.
+- [MM:SS] — Pembayaran dan penanganan error.
+- [MM:SS] — Penutup.
+
+## Repository
+
+GitHub:
+
+https://github.com/satzcd/enterprise001
