@@ -1,0 +1,25 @@
+# Dependencies
+/node_modules/
+**/node_modules/
+
+# Local environment files
+**/.env
+!**/.env.example
+
+# Build and test artifacts
+**/vendor/
+**/dist/
+**/coverage/
+
+# Logs
+*.log
+
+# Editor and operating system files
+.DS_Store
+.idea/
+.vscode/
+
+# Unused root-level artifacts
+/large.bin
+/large-base64.txt
+/[[] 
