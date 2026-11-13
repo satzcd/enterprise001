@@ -14,7 +14,7 @@ export async function request(baseURL, path, {method = 'GET', body} = {}) {
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
-        const response = await fetch(`S{baseUrl}${path}`, {
+        const response = await fetch(`${baseURL}${path}`, {
             method,
             headers: {
                 Accept: 'application/json',
@@ -27,7 +27,7 @@ export async function request(baseURL, path, {method = 'GET', body} = {}) {
             const payload = await response.json().catch(() => null)
 
             if (!response.ok) {
-                throw new ApiError(payload?.message ?? `Permintaan gagal (${response.status})`, {
+                throw new ApiError(payload?.message ?? payload?.error ?? `Permintaan gagal (${response.status})`, {
                     status: response.status,
                     errors: payload?.errors ?? null
                 });
