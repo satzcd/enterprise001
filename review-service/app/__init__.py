@@ -1,13 +1,13 @@
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
-
+from flask_cors import CORS
+from app.routes.review_routes import review_bp
 from app.exceptions import ReviewError
 
 
 def create_app():
     app = Flask(__name__)
-
-    from app.routes.review_routes import review_bp
+    CORS(app)
 
     app.register_blueprint(review_bp)
 

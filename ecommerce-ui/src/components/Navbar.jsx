@@ -11,10 +11,11 @@ export default function Navbar({ userId, onUserChange }) {
           <NavLink className="brand" to="/" aria-label="GADGETKU, beranda">
             GADGETKU<span>.</span>
           </NavLink>
-          <NavLink to="/" end>
+          <NavLink className="nav-home" to="/" end>
             Beranda
           </NavLink>
           <a href="/#koleksi">Koleksi</a>
+          <NavLink to="/orders">Pesanan</NavLink>
         </nav>
         <div className="nav-actions">
           <NavLink className="nav-cart" to="/cart">

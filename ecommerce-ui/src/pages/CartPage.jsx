@@ -1,17 +1,20 @@
 import { useCallback, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getCartDetail } from "../api/aggregate";
 import { clearCart, removeCartItem, updateCartItem } from "../api/cartApi";
+import { createOrder } from "../api/orderApi";
 import AsyncView from "../components/AsyncView";
 import { useAsync } from "../hooks/useAsync";
 import { describeError, formatRupiah } from "../utils/format";
 export default function CartPage({ userId }) {
+  const navigate = useNavigate();
   const loadCart = useCallback(() => getCartDetail(userId), [userId]);
   const { loading, data, error, reload } = useAsync(
     loadCart,
     [userId],
   );
   const [actionError, setActionError] = useState(null);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   async function run(action) {
     setActionError(null);
@@ -20,6 +23,19 @@ export default function CartPage({ userId }) {
       reload();
     } catch (err) {
       setActionError(err);
+    }
+  }
+
+  async function handleCheckout() {
+    setActionError(null);
+    setCheckingOut(true);
+    try {
+      const order = await createOrder(userId);
+      navigate(`/orders/${order.id}`, { state: { justCreated: true } });
+    } catch (err) {
+      setActionError(err);
+    } finally {
+      setCheckingOut(false);
     }
   }
   return (
@@ -72,7 +88,7 @@ export default function CartPage({ userId }) {
                         <button
                           type="button"
                           aria-label="Kurangi jumlah"
-                          disabled={item.quantity <= 1}
+                          disabled={checkingOut || item.quantity <= 1}
                           onClick={() =>
                             run(() => updateCartItem(item.id, item.quantity - 1))
                           }
@@ -83,6 +99,7 @@ export default function CartPage({ userId }) {
                         <button
                           type="button"
                           aria-label="Tambah jumlah"
+                          disabled={checkingOut}
                           onClick={() =>
                             run(() => updateCartItem(item.id, item.quantity + 1))
                           }
@@ -101,6 +118,7 @@ export default function CartPage({ userId }) {
                         <button
                           className="remove-button"
                           type="button"
+                          disabled={checkingOut}
                           onClick={() => run(() => removeCartItem(item.id))}
                         >
                           Hapus
@@ -115,12 +133,23 @@ export default function CartPage({ userId }) {
               <p className="total">
                 Total <strong>{formatRupiah(data.totalPrice)}</strong>
               </p>
-              <button
-                type="button"
-                onClick={() => run(() => clearCart(userId))}
-              >
-                Kosongkan keranjang
-              </button>
+              <div className="cart-summary-actions">
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={checkingOut}
+                  onClick={() => run(() => clearCart(userId))}
+                >
+                  Kosongkan keranjang
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCheckout}
+                  disabled={checkingOut}
+                >
+                  {checkingOut ? "Membuat pesanan..." : "Checkout"}
+                </button>
+              </div>
             </div>
           </>
         )}

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import CartPage from "./pages/CartPage";
+import OrderDetailPage from "./pages/OrderDetailPage";
+import OrderHistoryPage from "./pages/OrderHistoryPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductListPage from "./pages/ProductListPage";
 export default function App() {
@@ -22,9 +24,12 @@ export default function App() {
             path="/products/:id"
             element={<ProductDetailPage userId={userId} />}
           />
-
           <Route path="/cart" element={<CartPage userId={userId} />} />
-
+          <Route
+            path="/orders"
+            element={<OrderHistoryPage userId={userId} />}
+          />
+          <Route path="/orders/:id" element={<OrderDetailPage />} />
           <Route path="*" element={<p>Halaman tidak ditemukan.</p>} />
         </Routes>
       </main>
